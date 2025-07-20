@@ -1,78 +1,68 @@
+import chalk from 'chalk'
+import fetch from 'node-fetch'
+import ws from 'ws'
+let WAMessageStubType = (await import('@whiskeysockets/baileys')).default
+import { readdirSync, unlinkSync, existsSync, promises as fs, rmSync } from 'fs'
+import path from 'path'
 
-import baileys from '@whiskeysockets/baileys';
+let handler = m => m
+handler.before = async function (m, { conn, participants, groupMetadata }) {
+    if (!m.messageStubType || !m.isGroup) return
 
-const WAMessageStubType = baileys.default;
+    const fkontak = { 
+        "key": { 
+            "participants":"0@s.whatsapp.net", 
+            "remoteJid": "status@broadcast", 
+            "fromMe": false, 
+            "id": "Halo" 
+        }, 
+        "message": { 
+            "contactMessage": { 
+                "vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD` 
+            }
+        }, 
+        "participant": "0@s.whatsapp.net"
+    }  
 
-export async function before(m, { conn, participants, groupMetadata}) {
-  if (!m.messageStubType ||!m.isGroup) return;
+    let chat = global.db.data.chats[m.chat]
+    let usuario = `@${m.sender.split`@`[0]}`
+    let pp = await conn.profilePictureUrl(m.chat, 'image').catch(_ => null) || 'https://files.catbox.moe/xr2m6u.jpg'
 
-  const mikuContact = {
-    key: {
-      participants: '0@s.whatsapp.net',
-      remoteJid: 'status@broadcast',
-      fromMe: false,
-      id: 'AEazzy Supreme 🐺'
-},
-    message: {
-      contactMessage: {
-        vcard: `BEGIN:VCARD
-VERSION:3.0
-N:Miku;Bot;;;
-FN:AEazzy Supreme 🐺
-item1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}
-item1.X-ABLabel:Celular
-END:VCARD`
+    let nombre, foto, edit, newlink, status, admingp, noadmingp
+
+    nombre = `✨ ${usuario} *ha cambiado el nombre del grupo* ✨\n\n> 📝 *Nuevo nombre:* _${m.messageStubParameters[0]}_`
+    foto = `📸 *¡Nueva foto de grupo!* 📸\n\n> 💫 Acción realizada por: ${usuario}`
+    edit = `⚙️ ${usuario} ha ajustado la configuración del grupo.\n\n> 🔒 Ahora *${m.messageStubParameters[0] == 'on' ? 'solo los administradores' : 'todos'}* pueden configurar el grupo.`
+    newlink = `🔗 *¡El enlace del grupo ha sido restablecido!* 🔗\n\n> 💫 Acción realizada por: ${usuario}`
+    status = `🗣️ El grupo ha sido *${m.messageStubParameters[0] == 'on' ? 'cerrado' : 'abierto'}* por ${usuario}!\n\n> 💬 Ahora *${m.messageStubParameters[0] == 'on' ? 'solo los administradores' : 'todos'}* pueden enviar mensajes.`
+    admingp = `👑 @${m.messageStubParameters[0].split`@`[0]} *¡Ahora es administrador del grupo!* 👑\n\n> 💫 Acción realizada por: ${usuario}`
+    noadmingp = `🗑️ @${m.messageStubParameters[0].split`@`[0]} *ha dejado de ser administrador del grupo.* 🗑️\n\n> 💫 Acción realizada por: ${usuario}`
+
+    // The entire 'if (chat.detect && m.messageStubType == 2)' block which handled
+    // session file deletion has been removed as per your request.
+    
+    if (chat.detect && m.messageStubType == 21) {
+        await this.sendMessage(m.chat, { text: nombre, mentions: [m.sender] }, { quoted: fkontak })  
+    } else if (chat.detect && m.messageStubType == 22) {
+        await this.sendMessage(m.chat, { image: { url: pp }, caption: foto, mentions: [m.sender] }, { quoted: fkontak })
+    } else if (chat.detect && m.messageStubType == 23) {
+        await this.sendMessage(m.chat, { text: newlink, mentions: [m.sender] }, { quoted: fkontak })
+    } else if (chat.detect && m.messageStubType == 25) {
+        await this.sendMessage(m.chat, { text: edit, mentions: [m.sender] }, { quoted: fkontak })  
+    } else if (chat.detect && m.messageStubType == 26) {
+        await this.sendMessage(m.chat, { text: status, mentions: [m.sender] }, { quoted: fkontak })  
+    } else if (chat.detect && m.messageStubType == 29) {
+        await this.sendMessage(m.chat, { text: admingp, mentions: [`${m.sender}`,`${m.messageStubParameters[0]}`] }, { quoted: fkontak })
+    } else if (chat.detect && m.messageStubType == 30) {
+        await this.sendMessage(m.chat, { text: noadmingp, mentions: [`${m.sender}`,`${m.messageStubParameters[0]}`] }, { quoted: fkontak })
+    } else {
+        // This condition now directly handles messageStubType == 2
+        // since the specific deletion logic for it is removed.
+        console.log({
+            messageStubType: m.messageStubType,
+            messageStubParameters: m.messageStubParameters,
+            type: WAMessageStubType[m.messageStubType], 
+        })
+    }
 }
-},
-    participant: '0@s.whatsapp.net'
-};
-
-  const chat = global.db.data.chats[m.chat];
-  const usuario = participants.find(p => p.id === m.sender)?.name || `@${m.sender.split`@`[0]}`;
-  const img = await conn.profilePictureUrl(m.chat, 'image').catch(_ => null) || 'https://files.catbox.moe/xr2m6u.jpg';
-
-  const eventos = {
-    21: {
-      mensaje: `🐺 𝗘𝗮𝘇𝘇𝘆 𝗕𝗼𝘁 𝗦𝘂𝗽𝗿𝗲𝗺𝗲𝘁 𝗔𝘃𝗶𝘀𝗮 🐺\n\n- 𝗡𝘂𝗲𝘃𝗼 𝗡𝗼𝗺𝗯𝗿𝗲 : ${m.messageStubParameters[0]}\n- 𝗨𝘀𝘂𝗮𝗿𝗶𝗼 : ${usuario}`,
-      tipo: 'texto'
-},
-    22: {
-      mensaje: `🐺 𝗘𝗮𝘇𝘇𝘆 𝗕𝗼𝘁 𝗦𝘂𝗽𝗿𝗲𝗺𝗲𝘁 𝗔𝘃𝗶𝘀𝗮 🐺\n\n𝗡𝘂𝗲𝘃𝗼 𝗙𝗼𝘁𝗼 𝗗𝗲𝗹 𝗚𝗿𝘂𝗽𝗼\n- 𝗨𝘀𝘂𝗮𝗿𝗶𝗼 : ${usuario}`,
-      tipo: 'imagen',
-      imagen: img
-},
-    23: {
-      mensaje: `🐺 𝗘𝗮𝘇𝘇𝘆 𝗕𝗼𝘁 𝗦𝘂𝗽𝗿𝗲𝗺𝗲𝘁 𝗔𝘃𝗶𝘀𝗮 🐺\n\n 𝗡𝘂𝗲𝘃𝗼 𝗘𝗻𝗹𝗮𝗰𝗲 𝗗𝗲𝗹 𝗚𝗿𝘂𝗽𝗼\n- 𝗨𝘀𝘂𝗮𝗿𝗶𝗼 : ${usuario}`,
-      tipo: 'texto'
-},
-    24: {
-      mensaje: `🐺 𝗘𝗮𝘇𝘇𝘆 𝗕𝗼𝘁 𝗦𝘂𝗽𝗿𝗲𝗺𝗲𝘁 𝗔𝘃𝗶𝘀𝗮 🐺\n\n- 𝗨𝘀𝘂𝗮𝗿𝗶𝗼 : ${usuario}\n- 𝗡𝘂𝗲𝘃𝗮 𝗗𝗲𝘀𝗰𝗿𝗶𝗽𝗰𝗶𝗼𝗻 𝗗𝗲𝗹 𝗚𝗿𝘂𝗽𝗼 : ${m.messageStubParameters?.[0] || 'Sin descripción'}`,
-      tipo: 'texto'
-},
-    25: {
-      mensaje: `🐺 𝗘𝗮𝘇𝘇𝘆 𝗕𝗼𝘁 𝗦𝘂𝗽𝗿𝗲𝗺𝗲𝘁 𝗔𝘃𝗶𝘀𝗮 🐺\n\n- 𝗨𝘀𝘂𝗮𝗿𝗶𝗼 : ${usuario}\n- 𝗔𝗷𝘂𝘀𝘁𝗲𝘀 𝗗𝗲𝗹 𝗚𝗿𝘂𝗽𝗼 : ${m.messageStubParameters[0] === 'on'? '𝗦𝗼𝗹𝗼 𝗔𝗱𝗺𝗶𝗻𝗶𝘀𝘁𝗿𝗮𝗱𝗼𝗿𝗲𝘀': '𝗦𝗼𝗹𝗼 𝗠𝗶𝗲𝗺𝗯𝗿𝗼𝘀'}`,
-      tipo: 'texto'
-},
-    26: {
-      mensaje: `🐺 𝗘𝗮𝘇𝘇𝘆 𝗕𝗼𝘁 𝗦𝘂𝗽𝗿𝗲𝗺𝗲𝘁 𝗔𝘃𝗶𝘀𝗮 🐺\n\n- 𝗨𝘀𝘂𝗮𝗿𝗶𝗼 : ${usuario}t\n- 𝗘𝘀𝘁𝗮𝗱𝗼 𝗗𝗲𝗹 𝗚𝗿𝘂𝗽𝗼 : ${m.messageStubParameters[0] === 'on'? '𝗚𝗿𝘂𝗽𝗼 𝗖𝗲𝗿𝗿𝗮𝗱𝗼 🔒': '𝗚𝗿𝘂𝗽𝗼 𝗔𝗯𝗶𝗲𝗿𝘁𝗼 🔓'}`,
-      tipo: 'texto'
-},
-    29: {
-      mensaje: `🐺 𝗘𝗮𝘇𝘇𝘆 𝗕𝗼𝘁 𝗦𝘂𝗽𝗿𝗲𝗺𝗲𝘁 𝗔𝘃𝗶𝘀𝗮 🐺\n\n- 𝗡𝘂𝗲𝘃𝗼 𝗔𝗱𝗺𝗶𝗻𝗶𝘀𝘁𝗿𝗮𝗱𝗼𝗿 : ${participants.find(p => p.id === m.messageStubParameters[0])?.name || `@${m.messageStubParameters[0].split`@`[0]}`} \n- 𝗨𝘀𝘂𝗮𝗿𝗶𝗼 : ${usuario}`,
-      tipo: 'texto'
-},
-    30: {
-      mensaje: `🐺 𝗘𝗮𝘇𝘇𝘆 𝗕𝗼𝘁 𝗦𝘂𝗽𝗿𝗲𝗺𝗲𝘁 𝗔𝘃𝗶𝘀𝗮 🐺\n\n- 𝗠𝗲𝗻𝗼𝘀 𝟭 𝗔𝗱𝗺𝗶𝗻𝗶𝘀𝘁𝗿𝗮𝗱𝗼𝗿 : ${participants.find(p => p.id === m.messageStubParameters[0])?.name || `@${m.messageStubParameters[0].split`@`[0]}`} \n- 𝗨𝘀𝘂𝗮𝗿𝗶𝗼 : ${usuario}`,
-      tipo: 'texto'
-}
-};
-
-  if (chat.detect && eventos[m.messageStubType]) {
-    const evento = eventos[m.messageStubType];
-    if (evento.tipo === 'texto') {
-      await conn.sendMessage(m.chat, { text: evento.mensaje, mentions: [m.sender]}, { quoted: mikuContact});
-} else if (evento.tipo === 'imagen') {
-      await conn.sendMessage(m.chat, { image: { url: evento.imagen}, caption: evento.mensaje, mentions: [m.sender]}, { quoted: mikuContact});
-}
-}
-}
+export default handler

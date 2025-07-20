@@ -43,7 +43,7 @@ handler.help = ['kick', 'ban'];
 handler.tags = ['group'];
 handler.command = /^(kick|ban|echar|sacar)$/i;
 handler.group = true;
-handler.admin = true;
-handler.botAdmin = false;
+handler.admin = false;
+handler.botAdmin = true;
 
 export default handler;

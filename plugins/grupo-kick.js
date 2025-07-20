@@ -1,49 +1,27 @@
-let handler = async (m, { conn, participants, isBotAdmin, isAdmin, args }) => {
-  if (!m.isGroup) return m.reply('❗ *Este comando solo funciona en grupos.*');
-  if (!isAdmin) return m.reply('🚫 *Solo los admins pueden usar este comando, fiera.*');
-  if (!isBotAdmin) return m.reply('😥 *No puedo eliminar a nadie si no soy admin.*');
+et handler = async (m, { conn, args, usedPrefix, command }) => {
+    let user = m.mentionedJid[0] ? m.mentionedJid[0] : (m.quoted ? m.quoted.sender : false);
 
-  let users = [];
-
-  if (m.mentionedJid?.length) {
-    users = m.mentionedJid;
-  } else if (m.quoted?.sender) {
-    users = [m.quoted.sender];
-  } else if (args[0]) {
-    let jid = args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net';
-    users = [jid];
-  }
-
-  if (!users.length) {
-    return m.reply('👀 *Etiqueta o responde al mensaje de quien quieras eliminar, no adivino...*');
-  }
-
-  for (let user of users) {
+    if (!user) {
+        return m.reply(`*⚠️ Por favor, menciona a la persona que deseas expulsar o cita su mensaje.*\n\nEjemplo: *${usedPrefix + command} @usuario*`);
+    }
     if (user === conn.user.jid) {
-      m.reply(`😅 *¿Quieres que me elimine a mí mismo? Eso no se puede.*`);
-      continue;
+        return m.reply('❌ ¡No puedo expulsarme a mí mismo! Soy indispensable aquí.');
     }
-    if (!participants.some(p => p.id === user)) {
-      m.reply(`🤔 *No encontré a @${user.split('@')[0]} en este grupo...*`, null, {
-        mentions: [user],
-      });
-      continue;
+    try {
+        await conn.groupParticipantsUpdate(m.chat, [user], 'remove');
+        m.reply(`✅ *${user.split('@')[0]}* ha sido expulsado del grupo.`);
+    } catch (e) {
+        console.error(e);
+
+        m.reply('⛔️ Ocurrió un error al intentar expulsar al usuario. Asegúrate de que tengo permisos de administrador y el usuario no es un administrador.');
     }
+}
 
-    await conn.groupParticipantsUpdate(m.chat, [user], 'remove');
-    await m.reply(`👢 *@${user.split('@')[0]} fue enviado a volar del grupo...*\n\n✨ _Desarrollado por Barboza🌀_`, null, {
-      mentions: [user],
-    });
-  }
-
-  m.react('✅');
-};
-
-handler.help = ['kick', 'ban'];
+handler.help = ['kick @user', 'expulsar @user'];
 handler.tags = ['group'];
-handler.command = /^(kick|ban|echar|sacar)$/i;
-handler.group = true;
-handler.admin = false;
-handler.botAdmin = false;
+handler.command = ['kick', 'expulsar', 'fuera'];
+handler.admin = true;        // Solo administradores del grupo pueden usarlo
+handler.group = true;        // Solo funciona en grupos
+handler.botAdmin = false;     // El bot debe ser administrador para ejecutarlo
 
 export default handler;

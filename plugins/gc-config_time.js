@@ -88,7 +88,7 @@ function clockString(ms) {
 handler.help = ['gctime <open/close> <tiempo>'];
 handler.tags = ['group'];
 handler.command = /^(gctime)$/i;
-handler.botAdmin = true;
+handler.botAdmin = false;
 handler.group = true;
 
 export default handler;

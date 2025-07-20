@@ -1,56 +1,94 @@
-/* Creditos a NIKOLSITA */
-
-const handler = async (m, {conn, isAdmin, isOwner, args, usedPrefix, command}) => {
+const handler = async (m, { conn, isAdmin, isOwner, args, usedPrefix, command}) => {
   if (!(isAdmin || isOwner)) {
-          global.dfail('admin', m, conn);
+    global.dfail('admin', m, conn);
     throw false;
-  }
-  const isClose = {
-          'open': 'not_announcement',
-          'buka': 'not_announcement',
-    'on': 'not_announcement',
-          '1': 'not_announcement',
-          'close': 'announcement',
-          'tutup': 'announcement',
-    'off': 'announcement',
-    '0': 'announcement',
-  }[(args[0] || '')];
-  if (isClose === undefined) {
-          const caption = `
-*• Ejemplo:*
-*${usedPrefix + command} open 1*
-*${usedPrefix + command} close 1*
-📌 *𝙴𝙹𝙴𝙼𝙿𝙻𝙾 𝙳𝙴 𝚄𝚂𝙾:* *${usedPrefix + command} close 1* 
-*👑𝙿𝙰𝚁𝙰 𝚀𝚄𝙴 𝙴𝙻 𝙶𝚁𝚄𝙿𝙾 𝙴𝚂𝚃𝙴 𝙲𝙴𝚁𝚁𝙰𝙳𝙾.𝚄𝙽𝙰.𝙷𝙾𝚁𝙰.*
-`;
-    m.reply(caption);
-          throw false;
-  }
-  const timeoutset = 86400000 * args[1] / 24;
-  await conn.groupSettingUpdate(m.chat, isClose).then(async (_)=> {
-          m.reply(`⚠️ *_Grupo ${isClose == 'announcement' ? 'cerrado' : 'abierto'} ${args[1] ? `durante *${clockString(timeoutset)}_*` : ''}`);
-  });
-  if (args[1]) {
-         setTimeout(async () => {
-      await conn.groupSettingUpdate(m.chat, `${isClose == 'announcement' ? 'not_announcement' : 'announcement'}`).then(async (_)=>{
-                    conn.reply(m.chat, `${isClose == 'not_announcement' ? '*𝗘𝗹 𝗴𝗿𝘂𝗽𝗼 𝗵𝗮 𝘀𝗶𝗱𝗼 𝗰𝗲𝗿𝗿𝗮𝗱𝗼, ¡𝗮𝗵𝗼𝗿𝗮 𝘀𝗼𝗹𝗼 𝗹𝗼𝘀 𝗮𝗱𝗺𝗶𝗻𝗶𝘀𝘁𝗿𝗮𝗱𝗼𝗿𝗲𝘀 𝗽𝘂𝗲𝗱𝗲𝗻 𝗲𝗻𝘃𝗶𝗮𝗿 𝗺𝗲𝗻𝘀𝗮𝗷𝗲𝘀!*' : '*𝗘𝗹 𝗴𝗿𝘂𝗽𝗼 𝘀𝗲 𝗵𝗮 𝗮𝗯𝗶𝗲𝗿𝘁𝗼, ¡𝗮𝗵𝗼𝗿𝗮 𝘁𝗼𝗱𝗼𝘀 𝗹𝗼𝘀 𝗺𝗶𝗲𝗺𝗯𝗿𝗼𝘀 𝗽𝘂𝗲𝗱𝗲𝗻 𝗲𝗻𝘃𝗶𝗮𝗿 𝗺𝗲𝗻𝘀𝗮𝗷𝗲𝘀!*'}!`);
-            });
-    }, timeoutset);
-  }
-};
-handler.help = ['grouptime *<open/close>* *<número>*'];
-handler.tags = ['group'];
-handler.command = /^(grouptime|gctime)$/i;
+}
 
-handler.botAdmin = false;;
+  const isClose = {
+    'open': 'not_announcement',
+    'close': 'announcement',
+    'on': 'not_announcement',
+    'off': 'announcement',
+    '1': 'not_announcement',
+    '0': 'announcement',
+    'buka': 'not_announcement',
+    'tutup': 'announcement'
+}[(args[0] || '').toLowerCase()];
+
+  if (isClose === undefined) {
+    const caption = `
+📌 *Ejemplos de uso:*
+${usedPrefix + command} close 1 día y 8 horas 20 segundos
+${usedPrefix + command} open 2 horas y 30 minutos
+
+🕒 Puedes usar cualquier combinación: días, horas, minutos, segundos.
+    `.trim();
+    m.reply(caption);
+    throw false;
+}
+
+  const tiempoTexto = args.slice(1).join(" ");
+  const tiempoMs = parseTiempo(tiempoTexto);
+  if (!tiempoMs) {
+    m.reply("⏱️ Por favor indica el tiempo correctamente. Ejemplo: `1 día 2 horas 15 minutos 10 segundos`");
+    throw false;
+}
+
+  await conn.groupSettingUpdate(m.chat, isClose);
+  m.reply(`⚠️ El grupo ha sido *${isClose === 'announcement'? 'cerrado': 'abierto'}* por *${clockString(tiempoMs)}*`);
+
+  setTimeout(async () => {
+    const nuevoEstado = isClose === 'announcement'? 'not_announcement': 'announcement';
+    await conn.groupSettingUpdate(m.chat, nuevoEstado);
+    conn.reply(m.chat, nuevoEstado === 'announcement'
+? '*✅ El grupo se ha abierto, ¡ahora todos pueden enviar mensajes!*'
+: '*🔒 El grupo ha sido cerrado, ¡solo administradores pueden hablar!*'
+);
+}, tiempoMs);
+};
+
+// 🧮 Interpreta frases como "1 hora y 5 minutos", "2 días y 30 segundos", etc.
+function parseTiempo(texto) {
+  texto = texto
+.toLowerCase()
+.replace(/\b(y|e|y\s|e\s|\,)\b/g, ' ')  // Elimina conectores
+.replace(/\s{2,}/g, ' ')               // Limpia espacios extra
+.trim();
+
+  const dias = (/(\d+)\s*d[ií]a[s]?/.exec(texto) || [])[1] || 0;
+  const horas = (/(\d+)\s*h[oó]ra[s]?/.exec(texto) || [])[1] || 0;
+  const minutos = (/(\d+)\s*m[inuto]*[s]?/.exec(texto) || [])[1] || 0;
+  const segundos = (/(\d+)\s*s[eé]gundo[s]?/.exec(texto) || [])[1] || 0;
+
+  const ms =
+    (Number(dias) * 86400000) +
+    (Number(horas) * 3600000) +
+    (Number(minutos) * 60000) +
+    (Number(segundos) * 1000);
+
+  return ms> 0? ms: null;
+}
+
+// 🕘 Muestra duración legible como: "1 día 5 horas 3 minutos 10 segundos"
+function clockString(ms) {
+  const d = Math.floor(ms / 86400000);
+  const h = Math.floor(ms / 3600000) % 24;
+  const m = Math.floor(ms / 60000) % 60;
+  const s = Math.floor(ms / 1000) % 60;
+
+  const partes = [];
+  if (d) partes.push(`${d} día${d> 1? 's': ''}`);
+  if (h) partes.push(`${h} hora${h> 1? 's': ''}`);
+  if (m) partes.push(`${m} minuto${m> 1? 's': ''}`);
+  if (s) partes.push(`${s} segundo${s> 1? 's': ''}`);
+
+  return partes.length? partes.join(' '): '0 segundos';
+}
+
+handler.help = ['gctime <open/close> <tiempo>'];
+handler.tags = ['group'];
+handler.command = /^(gctime)$/i;
+handler.botAdmin = true;
 handler.group = true;
 
 export default handler;
-
-function clockString(ms) {
-  const h = Math.floor(ms / 3600000);
-  const m = Math.floor(ms / 60000) % 60;
-  const s = Math.floor(ms / 1000) % 60;
-  console.log({ms, h, m, s});
-  return [h, m, s].map((v) => v.toString().padStart(2, 0) ).join(':');
-}

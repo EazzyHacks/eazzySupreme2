@@ -4,7 +4,7 @@ await conn.reply(m.chat, `🚩 Se restableció con éxito el link del grupo.\n*-
 handler.help = ['resetlink']
 handler.tags = ['group']
 handler.command = ['revoke', 'resetlink', 'anularlink'] 
-handler.group = true
+handler.botAdmin = false
 handler.admin = true
-handler.botAdmin = true
+handler.group = true
 export default handler

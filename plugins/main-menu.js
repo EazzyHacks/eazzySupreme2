@@ -1,4 +1,3 @@
-
 import { xpRange} from '../lib/levelling.js';
 
 const clockString = ms => {
@@ -8,119 +7,98 @@ const clockString = ms => {
   return [h, m, s].map(v => v.toString().padStart(2, '0')).join(':');
 };
 
-const imagen = "https://files.catbox.moe/mrtzyt.jpg";
-
-const menuHeader = `
-╭━━━「 🐺 Eazzy X Supreme 」━━━╮
-┃ ¡Hola, %name!
-┃ Nivel: %level | XP: %exp/%max
-┃ Límite: %limit | Modo: %mode
-┃ Uptime: %uptime | Usuarios: %total
-╰━━━━━━━━━━━━━━━━━━━━━━━╯
-`;
-
-const sectionDivider = `╰───────────────╯`;
-
-const menuFooter = `
-╭────────────┈
-│ 💡 Usa cada comando con su prefijo.
-│ ✨ El bot perfecto para animarte.
-│ 🛠 Desarrollado por @brxzz_xit
-╰────────────┈
-`;
-
-let handler = async (m, { conn, usedPrefix: _p}) => {
-  const fkontak = {
-    key: {
-      participants: "0@s.whatsapp.net",
-      remoteJid: "status@broadcast",
-      fromMe: false,
-      id: "Halo"
-},
-    message: {
-      contactMessage: {
-        vcard: `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
-}
-},
-    participant: "0@s.whatsapp.net"
+const saludarSegunHora = () => {
+  const hora = new Date().getHours();
+  if (hora>= 5 && hora < 12) return '🌄 Buenos días';
+  if (hora>= 12 && hora < 19) return '🌞 Buenas tardes';
+  return '🌙 Buenas noches';
 };
 
+const img = 'https://files.catbox.moe/6dewf4.jpg';
+
+const sectionDivider = '╰━━━━━━━━━━━━━━━━━━⭓';
+
+const menuFooter = `
+╭─❒ 「📌 INFO FINAL」
+│ ⚠️ Usa los comandos con el prefijo correspondiente
+│ 📌 Ejemplo:.ping |.menu
+│ 🛡️ Creado por Eazzy
+╰❒
+`.trim();
+
+const handler = async (m, { conn, usedPrefix}) => {
   try {
+    const saludo = saludarSegunHora();
     const user = global.db.data.users[m.sender] || { level: 1, exp: 0, limit: 5};
     const { exp, level, limit} = user;
     const { min, xp} = xpRange(level, global.multiplier || 1);
-    const totalreg = Object.keys(global.db?.data?.users || {}).length;
+    const totalUsers = Object.keys(global.db.data.users).length;
     const mode = global.opts?.self? 'Privado 🔒': 'Público 🌐';
     const uptime = clockString(process.uptime() * 1000);
-    const name = await conn.getName(m.sender) || "Usuario";
+    const userName = await conn.getName(m.sender);
+    const tagUsuario = `@${m.sender.split('@')[0]}`;
 
-    let categorizedCommands = {
-      "🎭 Anime": new Set(),
-      "ℹ️ Info": new Set(),
-      "🔎 Search": new Set(),
-      "🎮 Game": new Set(),
-      "🤖 SubBots": new Set(),
-      "🌀 RPG": new Set(),
-      "📝 Registro": new Set(),
-      "🎨 Sticker": new Set(),
-      "🖼️ Imagen": new Set(),
-      "🖌️ Logo": new Set(),
-      "⚙️ Configuración": new Set(),
-      "💎 Premium": new Set(),
-      "📥 Descargas": new Set(),
-      "🛠️ Herramientas": new Set(),
-      "🎉 Diversión": new Set(),
-      "🔞 NSFW": new Set(),
-      "📀 Base de Datos": new Set(),
-      "🔊 Audios": new Set(),
-      "🗝️ Avanzado": new Set(),
-      "🔥 Free Fire": new Set(),
-      "Otros": new Set()
+    const fkontak = {
+      key: {
+        remoteJid: m.chat,
+        fromMe: false,
+        id: m.key.id
+},
+      message: {
+        contactMessage: {
+          displayName: userName,
+          vcard: `BEGIN:VCARD\nVERSION:3.0\nFN:${userName}\nTEL;type=WA:${m.sender}\nEND:VCARD`
+}
+}
 };
 
-    for (const plugin of Object.values(global.plugins)) {
-      if (plugin?.help &&!plugin.disabled) {
-        const cmds = Array.isArray(plugin.help)? plugin.help: [plugin.help];
-        const tagKey = Object.keys(categorizedCommands).find(key => {
-          const clean = key.replace(/[^a-z]/gi, '').toLowerCase();
-          return plugin.tags?.includes(clean);
-}) || "Otros";
-        cmds.forEach(cmd => categorizedCommands[tagKey].add(cmd));
-}
-}
+    let categorizedCommands = {};
+    Object.values(global.plugins)
+.filter(p => p?.help &&!p.disabled)
+.forEach(p => {
+        const tag = Array.isArray(p.tags)? p.tags[0]: p.tags || 'Otros';
+        const cmds = Array.isArray(p.help)? p.help: [p.help];
+        categorizedCommands[tag] = categorizedCommands[tag] || new Set();
+        cmds.forEach(cmd => categorizedCommands[tag].add(usedPrefix + cmd));
+});
 
-    const menuBody = Object.entries(categorizedCommands)
-.filter(([_, cmds]) => cmds.size> 0)
-.map(([title, cmds]) => {
-        const entries = [...cmds].map(cmd => {
-          const plugin = Object.values(global.plugins).find(p => Array.isArray(p.help)? p.help.includes(cmd): p.help === cmd);
-          const premium = plugin?.premium? '💎': '';
-          const limited = plugin?.limit? '🌀': '';
-          return `│ 🐺 _${_p}${cmd}_ ${premium}${limited}`.trim();
-}).join('\n');
-        return `╭─「 ${title} 」\n${entries}\n${sectionDivider}`;
+    const categoryEmojis = {
+      anime: '🎭', info: 'ℹ️', search: '🔎', diversión: '🎉', subbots: '🤖',
+      rpg: '🌀', registro: '📝', sticker: '🎨', imagen: '🖼️', logo: '🖌️',
+      premium: '🎖️', configuración: '⚙️', descargas: '📥', herramientas: '🛠️',
+      nsfw: '🔞', 'base de datos': '📀', audios: '🔊', 'freefire': '🔥', otros: '🪪'
+};
+
+    const menuBody = Object.entries(categorizedCommands).map(([title, cmds]) => {
+      const emoji = categoryEmojis[title.toLowerCase()] || '📁';
+      const list = [...cmds].map(cmd => `│ ◦ ${cmd}`).join('\n');
+      return `╭─「 ${emoji} ${title.toUpperCase()} 」\n${list}\n${sectionDivider}`;
 }).join('\n\n');
 
-    const finalHeader = menuHeader
-.replace('%name', name)
-.replace('%level', level)
-.replace('%exp', exp - min)
-.replace('%max', xp)
-.replace('%limit', limit)
-.replace('%mode', mode)
-.replace('%uptime', uptime)
-.replace('%total', totalreg);
-const fullMenu = `${finalHeader}\n\n${menuBody}\n\n${menuFooter}`.trim();
+    const header = `
+${saludo} ${tagUsuario} 👋
+
+╭─ 「 Eazzy X Bot 」
+│ 👤 Nombre: ${userName}
+│ 🎖 Nivel: ${level} | XP: ${exp - min}/${xp}
+│ 🔓 Límite: ${limit}
+│ 🧭 Modo: ${mode}
+│ ⏱️ Tiempo activo: ${uptime}
+│ 🌍 Usuarios registrados: ${totalUsers}
+╰─❒
+`.trim();
+
+    const fullMenu = `${header}\n\n${menuBody}\n\n${menuFooter}`;
 
     await conn.sendMessage(m.chat, {
-      image: { url: imagen},
+      image: { url: img},
       caption: fullMenu,
       mentions: [m.sender]
 }, { quoted: fkontak});
 
 } catch (e) {
-    console.error(e);
-    conn.reply(m.chat, '⚠️ Error al generar el menú. Intenta de nuevo.', m);
+    console.error('❌ Error al generar el menú:', e);
+    await conn.reply(m.chat, '⚠️ Ocurrió un error al mostrar el menú.', m);
 }
 };
 

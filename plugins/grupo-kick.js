@@ -9,7 +9,7 @@ let handler = async (m, { conn, args, usedPrefix, command }) => {
     }
     try {
         await conn.groupParticipantsUpdate(m.chat, [user], 'remove');
-        m.reply(`Eazzy Supreme ha Eliminado 1 Putita Del Grupo ✅.`);
+        m.reply(`*Eazzy Supreme ha Eliminado 1 Putita Del Grupo ✅*.`);
     } catch (e) {
         console.error(e);
 

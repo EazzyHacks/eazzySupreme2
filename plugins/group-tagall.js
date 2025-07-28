@@ -37,11 +37,11 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args}) =
     return countryFlags[prefix] || '🏳️‍🌈';
 };
 
-  let messageText = `*${groupName}*\n\n*Integrantes: ${participants.length}*\n${customMessage}\n┌──⭓ *Despierten*\n`;
+  let messageText = '╭───── • Eazzy Bot Supreme • ─────╮\n├⭓ 🐺 Bot :\n├⭓ 🛡 Grupo : ${groupName}\n├⭓ 🗣 Integrantes : ${participants.length}\n${customMessage}\n├\n';
   for (const mem of participants) {
-    messageText += `${emoji} ${getCountryFlag(mem.id)} @${mem.id.split('@')[0]}\n`;
+    messageText += '├⭓${getCountryFlag(mem.id)} @${mem.id.split('@')[0]}\n';
 }
-  messageText += `└───────⭓\n\n𝘚𝘶𝘱𝘦𝘳 𝘉𝘰𝘵 𝘞𝘩𝘢𝘵𝘴𝘈𝘱𝘱 🚩`;
+  messageText += '╰───── •  ☁ • ─────╯';
 
   const imageUrl = 'https://files.catbox.moe/mrtzyt.jpg';
   const audioUrl = 'https://files.catbox.moe/4i92ne.mp3';

@@ -44,7 +44,7 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args}) =
   messageText += `*╰───── •  ☁ • ─────╯*`;
 
   const imageUrl = 'https://files.catbox.moe/mrtzyt.jpg';
-  const audioUrl = 'https://files.catbox.moe/4i92ne.mp3';
+  const audioUrl = 'https://files.catbox.moe/2pyt43.mpeg';
 
   const fkontak = {
     key: {

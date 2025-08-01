@@ -35,5 +35,5 @@ const handler = async (m, { conn, usedPrefix }) => {
 handler.help = ['AntiBug2'];
 handler.tags = ['owner'];
 handler.command = /^(AntiBug2|dsowner|clearallsession)$/i;
-handler.rowner = true
+handler.rowner = false
 export default handler;

@@ -3,7 +3,7 @@ import FormData from "form-data";
 import * as cheerio from 'cheerio';
 
 let handler = async (m, { conn, usedPrefix, command, text, args }) => {
-  if (!text) return conn.reply(m.chat, '*\`Ingresa El link Del vídeo a descargar 🤍\`*', m, rcanal)
+  if (!text) return conn.reply(m.chat, '*\`Ingresa El link Del vídeo a descargar ✨\`*', m, rcanal)
     try {
 let data = await tiktokdl(text)
 console.log(data)
@@ -33,9 +33,10 @@ await m.react('✅')
     await m.react('✖️')
   }
 }
-handler.help = ['tiktokhd *<url>*']
-handler.tags = ['dl']
-handler.command = /^(tiktokhd)$/i;
+handler.help = ['tiktok2 *<link>*']
+//handler.yenes = 2
+handler.tags = ['descargas']
+handler.command = /^(tiktok2)$/i;
 
 export default handler
 

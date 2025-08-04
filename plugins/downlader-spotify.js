@@ -1,13 +1,14 @@
+
 import fetch from 'node-fetch';
 
 let handler = async (m, { conn, args, command, usedPrefix}) => {
   const text = args.join(" ");
   if (!text) {
     return m.reply(
-      `╭─⬣「 *Ash Bot* 」⬣
+      `╭─⬣「 *Barboza AI* 」⬣
 │ ≡◦ 🎧 *Uso correcto del comando:*
 │ ≡◦ ${usedPrefix + command} shakira soltera
-╰─⬣\n> © Ash AI`
+╰─⬣\n> © Barboza AI`
 );
 }
 
@@ -17,7 +18,7 @@ let handler = async (m, { conn, args, command, usedPrefix}) => {
 
     if (!json.status ||!json.result?.downloadUrl) {
       return m.reply(
-        `╭─⬣「 *Ash* 」⬣
+        `╭─⬣「 *Barboza AI* 」⬣
 │ ≡◦ ❌ *No se encontró resultado para:* ${text}
 ╰─⬣`
 );
@@ -29,7 +30,7 @@ let handler = async (m, { conn, args, command, usedPrefix}) => {
     // Enviar imagen con detalles
     await conn.sendMessage(m.chat, {
       image: { url: cover},
-      caption: `╭─⬣「 *MÚSICA ASH* 」⬣
+      caption: `╭─⬣「 *MÚSICA SPOTIFY* 」⬣
 │ ≡◦ 🎵 *Título:* ${title}
 │ ≡◦ 👤 *Artista:* ${artist}
 │ ≡◦ ⏱️ *Duración:* ${duration}
@@ -48,7 +49,7 @@ let handler = async (m, { conn, args, command, usedPrefix}) => {
 } catch (e) {
     console.error(e);
     return m.reply(
-      `╭─⬣「 *Ash AI* 」⬣
+      `╭─⬣「 *Barboza AI* 」⬣
 │ ≡◦ ⚠️ *Error al procesar la solicitud.*
 │ ≡◦ Intenta nuevamente más tarde.
 ╰─⬣`
@@ -56,9 +57,8 @@ let handler = async (m, { conn, args, command, usedPrefix}) => {
 }
 };
 
-handler.help = ['play <nombre>'];
+handler.help = ['spotify <nombre>'];
 handler.tags = ['descargas'];
-handler.command = /^play/i;
-handler.register = false;
+handler.command = /^spotify$/i;
 
 export default handler;

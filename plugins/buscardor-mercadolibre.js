@@ -1,5 +1,5 @@
 import axios from 'axios';
-import cheerio from 'cheerio';
+import * as cheerio from 'cheerio';
 
 let handler = async (m, { conn, text, usedPrefix, command }) => {
 try {
@@ -19,7 +19,7 @@ handler.help = ['mercadolibre <búsqueda>']
 handler.tags = ['buscador']
 handler.command = ['mercadolibre']
 handler.estrellas = 2
-handler.register = true
+handler.register = false
 export default handler;
 
 async function mercado(query) {

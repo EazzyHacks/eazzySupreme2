@@ -18,16 +18,16 @@ handler.before = async function (m, { conn, participants, groupMetadata}) {
 },
         message: {
             locationMessage: {
-                name: "*Sasuke Bot MD 🌀*",
+                name: "*Eazzy Supreme 🌀*",
                 jpegThumbnail: await (await fetch('https://files.catbox.moe/1j784p.jpg')).buffer(),
                 vcard:
                     "BEGIN:VCARD\n" +
                     "VERSION:3.0\n" +
-                    "N:;Sasuke;;;\n" +
-                    "FN:Sasuke Bot\n" +
-                    "ORG:Barboza Developers\n" +
+                    "N:;Eazzy;;;\n" +
+                    "FN:Eazzy Bot\n" +
+                    "ORG:Eazzy Developers\n" +
                     "TITLE:\n" +
-                    "item1.TEL;waid=19709001746:+1 (970) 900-1746\n" +
+                    "item1.TEL;waid=51936994155:+51 936 994 155\n" +
                     "item1.X-ABLabel:Alien\n" +
                     "X-WA-BIZ-DESCRIPTION:🛸 Llamado grupal universal con estilo.\n" +
                     "X-WA-BIZ-NAME:Sasuke\n" +
